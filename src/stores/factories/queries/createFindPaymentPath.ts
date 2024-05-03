@@ -1,9 +1,9 @@
-import { createLiveSearchStore } from "../createLiveSearchStore";
+import {createLiveSearchStore} from "../createLiveSearchStore";
 import Web3 from "web3";
-import { HUB_ABI } from "../../../abis/hub";
-import { CirclesUbiIdApi, HubAddress } from "../../../consts";
-import { ZERO_ADDRESS } from "@safe-global/protocol-kit/dist/src/utils/constants";
-import type { PaymentPath } from "../../../models/paymentPath";
+import {HUB_ABI} from "../../../abis/hub";
+import {HubAddress, PathfinderApi} from "../../../consts";
+import {ZERO_ADDRESS} from "@safe-global/protocol-kit/dist/src/utils/constants";
+import type {PaymentPath} from "../../../models/paymentPath";
 
 export type PaymentPathSearchArgs = {
     from: string
@@ -56,19 +56,45 @@ export const createFindPaymentPath = () => createLiveSearchStore<PaymentPathSear
         return EmptyPath;
     }
 
-    const flowResponse = await fetch(CirclesUbiIdApi, {
-        "headers": {
-            "content-type": "application/json"
+    const query = {
+        method: 'compute_transfer',
+        params: {from: searchArgs.from, to: searchArgs.to, value: searchArgs.amount}
+    };
+
+    const response = await fetch(PathfinderApi, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
         },
-        "body": "{\"operationName\":null,\"variables\":{},\"query\":\"{\\n  directPath(\\n    from: \\\"" + searchArgs.from + "\\\"\\n    to: \\\"" + searchArgs.to + "\\\"\\n    amount: \\\"" + searchArgs.amount + "\\\"\\n  ) {\\n    requestedAmount\\n    flow\\n    transfers {\\n      from\\n      to\\n      token\\n      tokenOwner\\n      value\\n    }\\n  }\\n}\\n\"}",
-        "method": "POST"
+        body: JSON.stringify(query)
     });
 
-    const flowResponseJson = await flowResponse.json();
-    const requestedAmount = flowResponseJson.data?.directPath?.requestedAmount;
-    const maxFlow = flowResponseJson.data?.directPath?.flow;
-    const path = flowResponseJson.data?.directPath?.transfers;
-    const isValid = flowResponseJson.data?.directPath?.isValid;
+    if (!response.ok) {
+        throw new Error(`Error calling API: ${response.status}`);
+    }
+
+    const parsed = await response.json();
+
+    const transformedResponse: any = {
+        data: {
+            directPath: {
+                requestedAmount: searchArgs.amount,
+                flow: parsed.result.maxFlowValue,
+                transfers: parsed.result.transferSteps.map((step: any) => ({
+                    from: step.from,
+                    to: step.to,
+                    tokenOwner: step.token_owner,
+                    value: step.value
+                })),
+                isValid: parsed.result.final
+            }
+        }
+    };
+
+    const requestedAmount = transformedResponse.data?.directPath?.requestedAmount;
+    const maxFlow = transformedResponse.data?.directPath?.flow;
+    const path = transformedResponse.data?.directPath?.transfers;
+    const isValid = transformedResponse.data?.directPath?.isValid;
 
     return <PaymentPath>{
         requestedAmount: requestedAmount ? requestedAmount : "0",

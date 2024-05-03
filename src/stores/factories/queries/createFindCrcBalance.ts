@@ -1,6 +1,6 @@
 import { createLiveSearchStore } from "../createLiveSearchStore";
 import Web3 from "web3";
-import { CirclesUbiIdApi } from "../../../consts";
+import {CirclesRpc} from "../../../consts";
 
 export type FindCrcBalanceSearchArgs = {
     address: string
@@ -11,20 +11,19 @@ export const createFindCrcBalance = () => createLiveSearchStore<FindCrcBalanceSe
         return undefined;
     }
 
-    const balanceResponse = await fetch(CirclesUbiIdApi, {
+    const balanceResponse = await fetch(CirclesRpc, {
         "headers": {
             "content-type": "application/json",
         },
-        "body": "{\"operationName\":null,\"variables\":{},\"query\":\"{\\n  profilesBySafeAddress(\\n    safeAddresses: \\\"" + searchArg.address + "\\\"\\n  ) {\\n    circlesAddress\\n    balances {\\n      crcBalances {\\n        lastUpdatedAt\\n        total\\n      }\\n    }\\n  }\\n}\\n\"}",
+        "body": `{
+            "jsonrpc":"2.0",
+            "method":"circles_getTotalBalance",
+            "params":["${searchArg.address}"],
+            "id":1
+        }`,
         "method": "POST"
     });
 
     const balanceResponseJson = await balanceResponse.json();
-
-    const safeInfo = balanceResponseJson.data?.profilesBySafeAddress?.length > 0
-        ? balanceResponseJson.data?.profilesBySafeAddress[0]
-        : undefined;
-
-    const balance = safeInfo?.balances?.crcBalances?.total;
-    return balance ? balance : "0";
+    return balanceResponseJson.result ? balanceResponseJson.result : "0";
 }, undefined);
