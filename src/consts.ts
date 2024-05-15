@@ -1,21 +1,21 @@
 export const AppMetadata = {
-  name: "Mint HoG with Circles",
-  icon: "'<svg></svg>'",
-  logo: "https://circles.dappcon.io/images/dappconf-blue.png",
-  description: "Exchange your Circles for HoG to buy DappCon tickets",
-  explore: "https://circles.dappcon.io/",
-  recommendedInjectedWallets: [
-    { name: "MetaMask", url: "https://metamask.io" },
-    { name: "Rabby", url: "https://rabby.io/" },
-  ],
+    name: "Mint HoG with Circles",
+    icon: "'<svg></svg>'",
+    logo: "https://circles.dappcon.io/images/dappconf-blue.png",
+    description: "Exchange your Circles for HoG to buy DappCon tickets",
+    explore: "https://circles.dappcon.io/",
+    recommendedInjectedWallets: [
+        {name: "MetaMask", url: "https://metamask.io"},
+        {name: "Rabby", url: "https://rabby.io/"},
+    ],
 };
 export const Chains = [{
-  id: "0x64",
-  rpcUrl: "https://rpc.circlesubi.id/",
-  label: "Gnosis Chain",
-  token: "xDai",
-  publicRpcUrl: "https://rpc.circlesubi.id/",
-  blockExplorerUrl: "https://gnosisscan.io/"
+    id: "0x64",
+    rpcUrl: "https://gnosis-rpc.publicnode.com",
+    label: "Gnosis Chain",
+    token: "xDai",
+    publicRpcUrl: "https://gnosis-rpc.publicnode.com",
+    blockExplorerUrl: "https://gnosisscan.io/"
 }];
 
 export const CirclesGardenApi = `https://api.circles.garden/`;
