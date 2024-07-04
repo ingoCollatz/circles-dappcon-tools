@@ -54,9 +54,7 @@ async function queryCirclesSubgraph(ownerAddress: string) {
     const requestUrl = `https://safe-transaction-gnosis-chain.safe.global/api/v1/owners/${checksumAddress}/safes/`;
 
     const safesByOwnerResult = await fetch(requestUrl);
-    console.log("safesByOwnerResult", safesByOwnerResult)
     const safesByOwner = await safesByOwnerResult.json();
-    console.log("safesByOwner", safesByOwner)
 
     return safesByOwner.safes ?? [];
 }
