@@ -1,7 +1,7 @@
 import { createLiveSearchStore } from "../createLiveSearchStore";
 import Web3 from "web3";
 import type { CirclesSafe } from "../../../models/circlesSafe";
-import { CirclesGardenApi, CirclesSubgraphApi } from "../../../consts";
+import { CirclesGardenApi } from "../../../consts";
 
 export type CirclesSafeMap = { [safeAddress: string]: CirclesSafe };
 
@@ -49,20 +49,16 @@ async function queryCirclesGarden(ownerAddress: string, safeAddresses: string[])
 }
 
 async function queryCirclesSubgraph(ownerAddress: string) {
-    const args = {
-        "headers": {
-            "Accept": "application/json",
-            "Accept-Language": "en-US,en;q=0.5",
-            "content-type": "application/json",
-        },
-        "body": "{\"query\":\"{\\n  user(id: \\\"" + ownerAddress.toLowerCase() + "\\\") {\\n    safeAddresses\\n  }\\n}\",\"variables\":null,\"extensions\":{\"headers\":null}}",
-        "method": "POST"
-    };
+    const web3 = new Web3();
+    const checksumAddress = web3.utils.toChecksumAddress(ownerAddress);
+    const requestUrl = `https://safe-transaction-gnosis-chain.safe.global/api/v1/owners/${checksumAddress}/safes/`;
 
-    const safesByOwnerResult = await fetch(CirclesSubgraphApi, args);
+    const safesByOwnerResult = await fetch(requestUrl);
+    console.log("safesByOwnerResult", safesByOwnerResult)
     const safesByOwner = await safesByOwnerResult.json();
+    console.log("safesByOwner", safesByOwner)
 
-    return safesByOwner.data.user?.safeAddresses ?? [];
+    return safesByOwner.safes ?? [];
 }
 
 export const createFindSafesByOwner = () => createLiveSearchStore<string, CirclesSafe[]>(200, async (ownerAddress: string) => {
